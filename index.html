@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Purrmatchr - A cat adoption survey to help match you with your ideal feline companion.">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Purrmatchr - Cat Adoption Survey">
+  <meta property="og:description" content="A cat adoption survey to help match you with your ideal feline companion.">
+  <meta property="og:type" content="website">
+  
+  <title>Purrmatchr | Cat Adoption Survey</title>
+
+  <!-- Lucide -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="container">
+
+    <header class="header">
+
+      <div class="logo">
+        <i data-lucide="cat" aria-hidden="true"></i>
+        <span>Purrmatchr</span>
+      </div>
+
+      <button
+        type="button"
+        class="theme-toggle"
+        id="theme-toggle"
+        aria-label="Toggle dark mode"
+      >
+        <i data-lucide="sun" class="icon-sun" aria-hidden="true"></i>
+        <i data-lucide="moon" class="icon-moon" aria-hidden="true"></i>
+      </button>
+
+
+    </header>
+
+    <main>
+
+      <h1 id="title">Cat Adoption Survey</h1>
+      <p id="description">
+        Thinking about adopting a feline friend? Tell us a bit about yourself and your preferences and we'll help you match with your purrfect companion!
+      </p>
+
+      <div class="progress-container">
+        <div class="progress-bar">
+
+          <div class="progress-step active" data-step="1">
+            <span class="step-number">1</span>
+            <span class="step-label">About You</span>
+          </div>
+
+          <div class="progress-step active" data-step="2">
+            <span class="step-number">2</span>
+            <span class="step-label">Living Situation</span>
+          </div>
+
+          <div class="progress-step active" data-step="3">
+            <span class="step-number">3</span>
+            <span class="step-label">Cat Preferences</span>
+          </div>
+
+          <div class="progress-step active" data-step="4">
+            <span class="step-number">4</span>
+            <span class="step-label">Final Details</span>
+          </div>
+
+        </div>
+      </div>
+
+      <form id="survey-form" novalidate>
+
+        <fieldset class="form-step active" data-step="1">
+
+          <legend class="sr-only">Step 1: About You</legend>
+
+          <div class="form-group">
+            <label for="name" id="name-label">
+              Full Name<span class="required" aria-hidden="true">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="name"
+              name="name"
+              required
+              autocomplete="name"
+              aria-required="true"
+            >
+            <span class="error-message" id="name-error" aria-live="polite"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="email" id="email-label">
+              Email Address<span class="required" aria-hidden="true">*</span>
+            </label>
+            <input 
+              type="email" 
+              id="email"
+              name="email"
+              required
+              autocomplete="email"
+              aria-required="true"
+            >
+            <span class="error-message" id="email-error" aria-live="polite"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input 
+              type="tel"
+              id="phone"
+              name="phone"
+              autocomplete="tel"
+            >
+            <span class="error-message" id="phone-error" aria-live="polite"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="age" id="age-label">
+              Your Age<span class="required" aria-hidden="true">*</span>
+            </label>
+            <input 
+              type="number"
+              id="age"
+              name="age"
+              min="18"
+              max="122"
+              required
+              aria-required="true"
+              aria-describedby="age-hint"
+            >
+            <span class="hint" id="age-hint">Must be 18 or older to adopt</span>
+            <span class="error-message" id="age-error" aria-live="polite"></span>
+          </div>
+
+        </fieldset>
+
+        <fieldset class="form-step" data-step="2">
+
+          <legend class="sr-only">Step 2: Your Living Situation</legend>
+
+          <div class="form-group">
+            <label for="dropdown">Housing Type</label>
+            <select name="housing" id="dropdown">
+              <option value="" disabled selected>Select your housing type</option>
+              <option value="apartment">Apartment</option>
+              <option value="townhouse">Townhouse</option>
+              <option value="house">House</option>
+              <option value="other">Other</option>
+            </select>
+            <span class="error-message" id="housing-error" aria-live="polite"></span>
+          </div>
+
+          <div class="form-group">
+
+            <span class="group-label">Do you own or rent?</span>
+
+            <div class="radio-group">
+              <label class="radio-label">
+                <input 
+                  type="radio"
+                  name="ownership"
+                  value="own"
+                >
+                <span class="radio-custom"></span>
+                I own my home
+              </label>
+
+              <label class="radio-label">
+                <input 
+                  type="radio"
+                  name="ownership"
+                  value="rent"
+                >
+                <span class="radio-custom"></span>
+                I rent
+              </label>
+
+              <label class="radio-label">
+                <input 
+                  type="radio"
+                  name="ownership"  
+                  value="live-with-family"
+                >
+                <span class="radio-custom"></span>
+                I live with family
+              </label>
+
+            </div>
+          </div>
+
+          <div class="form-group" id="yard-question">
+
+            <span class="group-label">Do you have a yard or outdoor space?</span>
+
+            <div class="radio-group">
+              <label class="radio-label">
+                <input 
+                  type="radio"
+                  name="yard"
+                  value="yes"
+                >
+                <span class="radio-custom"></span>
+                Yes
+              </label>
+              <label class="radio-label">
+                <input 
+                  type="radio"
+                  name="yard"
+                  value="no"
+                >
+                <span class="radio-custom"></span>
+                No
+              </label>
+              <label class="radio-label">
+                <input 
+                  type="radio"
+                  name="yard"
+                  value="balcony"
+                >
+                <span class="radio-custom"></span>
+                Balcony / Patio only
+              </label>
+            </div>
+            
+          </div>
+
+          <div class="form-group">
+
+            <span class="group-label">Other pets currently in your home?</span>
+            <p class="hint">Select all that apply</p>
+
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox"
+                  name="other-pets"
+                  value="cats"
+                >
+                <span class="checkbox-custom"></span>
+                Cats
+              </label>
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox"
+                  name="other-pets"
+                  value="dogs"
+                >
+                <span class="checkbox-custom"></span>
+                Dogs
+              </label>
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox"
+                  name="other-pets"
+                  value="birds"
+                >
+                <span class="checkbox-custom"></span>
+                Birds
+              </label>
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox"
+                  name="other-pets"
+                  value="fish"
+                >
+                <span class="checkbox-custom"></span>
+                Fish / Reptiles
+              </label>
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox"
+                  name="other-pets"
+                  value="small-animals"
+                >
+                <span class="checkbox-custom"></span>
+                Small Animals (rabbits, hamsters, etc.)
+              </label>
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox"
+                  name="other-pets"
+                  value="none"
+                >
+                <span class="checkbox-custom"></span>
+                No other pets
+              </label>
+            </div>
+
+          </div>
+
+        </fieldset>
+
+        <fieldset class="form-step" data-step="3">
+
+          <legend class="sr-only">Step 3: Cat Preferences</legend>
+
+          <div class="form-group">
+
+            <span class="group-label">Preferred cat age?</span>
+
+            <div class="radio-group">
+              <label class="radio-label">
+                <input 
+                  type="radio"
+                  name="cat-age"
+                  value="kitten"
+                >
+                <span class="radio-custom"></span>
+                Kitten (under 1 year)
+              </label>
+              <label class="radio-label">
+                <input 
+                  type="radio"
+                  name="cat-age"
+                  value="young-adult"
+                >
+                <span class="radio-custom"></span>
+                Young Adult (1-3 years)
+              </label>
+              <label class="radio-label">
+                <input 
+                  type="radio"
+                  name="cat-age"
+                  value="adult"
+                >
+                <span class="radio-custom"></span>
+                Adult (3-10 years)
+              </label>
+              <label class="radio-label">
+                <input 
+                  type="radio"
+                  name="cat-age"
+                  value="senior"
+                >
+                <span class="radio-custom"></span>
+                Senior (10+ years)
+              </label>
+              <label class="radio-label">
+                <input 
+                  type="radio"
+                  name="cat-age"
+                  value="no-preference"
+                >
+                <span class="radio-custom"></span>
+                No preference
+              </label>
+            </div>
+
+          </div>
+
+          <div class="form-group">
+
+            <span class="group-label">Preferred energy level?</span>
+            
+            <div class="radio-group">
+              <label class="radio-label">
+                <input 
+                  type="radio"
+                  name="energy-level"
+                  value="high"
+                >
+                <span class="radio-custom"></span>
+                High energy (playful, active)
+              </label>
+              <label class="radio-label">
+                <input 
+                  type="radio"
+                  name="energy-level"
+                  value="moderate"
+                >
+                <span class="radio-custom"></span>
+                Moderate (balanced play and rest)
+              </label>
+              <label class="radio-label">
+                <input 
+                  type="radio"
+                  name="energy-level"
+                  value="low"
+                >
+                <span class="radio-custom"></span>
+                Low energy (calm, relaxed)
+              </label>
+              <label class="radio-label">
+                <input 
+                  type="radio"
+                  name="energy-level"
+                  value="no-preference"
+                >
+                <span class="radio-custom"></span>
+                No preference
+              </label>
+            </div>
+
+          </div>
+
+          <div class="form-group">
+
+            <span class="group-label">Coat length preference?</span>
+            <p class="hint">Select all that apply</p>
+
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox"
+                  name="coat-length"
+                  value="short"
+                >
+                <span class="checkbox-custom"></span>
+                Short hair
+              </label>
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox"
+                  name="coat-length"
+                  value="medium"
+                >
+                <span class="checkbox-custom"></span>
+                Medium hair
+              </label>
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox"
+                  name="coat-length"
+                  value="long"
+                >
+                <span class="checkbox-custom"></span>
+                Long hair
+              </label>
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox"
+                  name="coat-length"
+                  value="hairless"
+                >
+                <span class="checkbox-custom"></span>
+                Hairless
+              </label>
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox"
+                  name="coat-length"
+                  value="no-preference"
+                >
+                <span class="checkbox-custom"></span>
+                No preference
+              </label>
+            </div>
+
+          </div>
+
+          <div class="form-group">
+
+            <span class="group-label">Would you consider a special needs cat?</span>
+            <p class="hint">Select all that apply</p>
+
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  name="special-needs"
+                  value="fiv-positive"
+                >
+                <span class="checkbox-custom"></span>
+                FIV+ cats
+              </label>
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  name="special-needs"
+                  value="senior"
+                >
+                <span class="checkbox-custom"></span>
+                Senior cats
+              </label>
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  name="special-needs"
+                  value="blind"
+                >
+                <span class="checkbox-custom"></span>
+                Blind or visually impaired
+              </label>
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  name="special-needs"
+                  value="deaf"
+                >
+                <span class="checkbox-custom"></span>
+                Deaf or hearing impaired
+              </label>
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  name="special-needs"
+                  value="Three-legged / amputee"
+                >
+                <span class="checkbox-custom"></span>
+                Three-legged / amputee
+              </label>
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  name="special-needs"
+                  value="medical"
+                >
+                <span class="checkbox-custom"></span>
+                Ongoing medical needs
+              </label>
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  name="special-needs"
+                  value="bonded-pair"
+                >
+                <span class="checkbox-custom"></span>
+                Bonded pairs (must adopt together)
+              </label>
+            </div>
+
+          </div>
+
+        </fieldset>
+
+        <fieldset class="form-step" data-step="4">
+
+          <legend class="sr-only">Step 4: Final Details</legend>
+
+          <div class="form-group">
+            <label for="experience">Previous cat experience?</label>
+            <select name="experience" id="experience">
+              <option value="" disabled selected>Select your experience level</option>
+              <option value="first-time">First-time cat owner</option>
+              <option value="childhood">Had cats growing up</option>
+              <option value="previous">Previously owned cats as an adult</option>
+              <option value="current">Currently have / recently had cats</option>
+              <option value="professional">Professional experience (vet, shelter, etc.)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="why-adopt">
+              Why do you want to adopt a cat?<span class="required" aria-hidden="true">*</span>
+            </label>
+            <textarea
+              name="why-adopt"
+              id="why-adopt"
+              rows="4"
+              required
+              aria-required="true"
+              maxlength="1000"
+            ></textarea>
+            <div class="textarea-footer">
+              <span class="error-message" id="why-adopt-error" aria-live="polite"></span>
+              <span class="char-count" id="why-adopt-count">0 / 1000</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="additional-info">Anything else we should know?</label>
+            <textarea
+              name="additional-info"
+              id="additional-info"
+              rows="3"
+              maxlength="500"
+            ></textarea>
+            <div class="textarea-footer">
+              <span class="char-count" id="additional-info-count">0 / 500</span>
+            </div>
+          </div>
+
+          <div class="form-group checkbox-single">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                name="newsletter"
+                value="yes"
+              >
+              <span class="checkbox-custom"></span>
+              Send me updates about adoptable cats and shelter news
+            </label>
+          </div>
+
+          <div class="form-group checkbox-single">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                name="terms"
+                value="accepted"
+                required
+                aria-required="true"
+              >
+              <span class="checkbox-custom"></span>
+              I understand this is not a real form or survey.<span class="required" aria-hidden="true">*</span>
+            </label>
+            <span class="error-message" id="terms-error" aria-live="polite"></span>
+          </div>
+
+        </fieldset>
+
+        <div class="form-navigation">
+          <button 
+            type="button" 
+            class="btn btn-secondary"
+            id="prev-btn"
+            disabled
+            aria-label="Go to previous step"
+          >
+            <i data-lucide="arrow-left" aria-hidden="true"></i>
+            Previous
+          </button>
+
+          <button 
+            type="button"
+            class="btn btn-primary"
+            id="next-btn"
+            aria-label="Go to next step"
+          >
+          Next
+          <i data-lucide="arrow-right" aria-hidden="true"></i>
+          </button>
+
+          <button 
+            type="submit"
+            class="btn btn-primary"
+            id="submit"
+            aria-label="Submit the survey"
+          >
+            Submit
+            <i data-lucide="check" aria-hidden="true"></i>
+          </button>
+        </div>
+
+      </form>
+
+      <div class="success-message" id="success-message" hidden>
+        <div class="success-icon">
+          <i data-lucide="heart" aria-hidden="true"></i>
+        </div>
+        <h2>Thank You!</h2>
+        <p>
+          Your adoption survey entry has been submitted successfully.
+          Our team will review your information and get back to you within 2-3 business days.
+        </p>
+        <p class="success-note">
+          <i data-lucide="mail" aria-hidden="true"></i>
+          Check your email for a confirmation message
+        </p>
+        <button type="button" class="btn btn-primary" id="restart-btn">Submit Another Response</button>
+      </div>
+
+    </main>
+
+    <!-- TODO: Replace placeholder footer -->
+    <footer class="footer">
+      <p>
+        FOOTER
+      </p>
+    </footer>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/main.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
