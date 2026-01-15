@@ -260,22 +260,28 @@ main {
   transition: opacity var(--transition-fast), transform var(--transition-fast);
 }
 
-.theme-toggle .icon-sun {
-  opacity: 1;
-  transform: rotate(0deg);
-}
-
-.theme-toggle .icon-moon {
+/* Default: all icons hidden */
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon,
+.theme-toggle .icon-system {
   opacity: 0;
   transform: rotate(-90deg);
 }
 
-[data-theme="dark"] .theme-toggle .icon-sun {
-  opacity: 0;
-  transform: rotate(90deg);
+/* Light mode: show sun */
+[data-theme-mode="light"] .theme-toggle .icon-sun {
+  opacity: 1;
+  transform: rotate(0deg);
 }
 
-[data-theme="dark"] .theme-toggle .icon-moon {
+/* Dark mode: show moon */
+[data-theme-mode="dark"] .theme-toggle .icon-moon {
+  opacity: 1;
+  transform: rotate(0deg);
+}
+
+/* System mode: show monitor */
+[data-theme-mode="system"] .theme-toggle .icon-system {
   opacity: 1;
   transform: rotate(0deg);
 }
