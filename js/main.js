@@ -1,7 +1,27 @@
 /* ========== PURRMATCHR MAIN JS ========== */
 
 const elements = {
-  themeToggle: document.getElementById("theme-toggle")
+  // Theme
+  themeToggle: document.getElementById("theme-toggle"),
+
+  // Form
+  form: document.getElementById("survey-form"),
+  formSteps: document.querySelectorAll(".form-step"),
+
+  // Nav
+  prevBtn: document.getElementById("prev-btn"),
+  nextBtn: document.getElementById("next-btn"),
+  submitBtn: document.getElementById("submit"),
+  formNav: document.querySelector(".form-navigation"),
+
+  // Progress
+  progressFill: document.querySelector(".progress-fill"),
+  progressSteps: document.querySelectorAll(".progress-step")
+};
+
+const state = {
+  currStep: 1,
+  totalSteps: 4
 };
 
 const STORAGE_KEYS = {
@@ -66,7 +86,95 @@ function initTheme() {
   }
 }
 
+// ----- Navigation -----
+
+/**
+ * Navigate to a specific step
+ * @param {number} stepNumber - The step to navigate to (1-4)
+ */
+function goToStep(stepNumber) {
+  if (stepNumber < 1 || stepNumber > state.totalSteps) return;
+
+  state.currStep = stepNumber;
+
+  elements.formSteps.forEach(step => {
+    step.classList.remove("active");
+    if (parseInt(step.dataset.step) === stepNumber) {
+      step.classList.add("active");
+    }
+  });
+
+  updateProgressIndicator();
+  updateNavigationButtons();
+  focusFirstInput(stepNumber);
+}
+
+
+/**
+ * Go to the next step
+ */
+function goToNextStep() {
+  goToStep(state.currStep + 1);
+}
+
+/**
+ * Go to previous step
+ */
+function goToPrevStep() {
+  goToStep(state.currStep - 1);
+}
+
+/**
+ * Update progress bar and step indicators
+ */
+function updateProgressIndicator() {
+  const progressPercentage = (state.currStep / state.totalSteps) * 100;
+  elements.progressFill.style.width = `${progressPercentage}%`;
+
+  elements.progressSteps.forEach(step => {
+    const stepNum = parseInt(step.dataset.step);
+    step.classList.remove("active", "completed");
+
+    if (stepNum === state.currStep) {
+      step.classList.add("active");
+    } else if (stepNum < state.currStep) {
+      step.classList.add("completed");
+    }
+  }); 
+}
+
+/**
+ * Update navigation button states
+ */
+function updateNavigationButtons() {
+  elements.prevBtn.disabled = state.currStep === 1;
+  
+  if (state.currStep === state.totalSteps) {
+    elements.formNav.classList.add("last-step");
+  } else {
+    elements.formNav.classList.remove("last-step");
+  }
+}
+
+/**
+ * Focus the first input in the specified step
+ * @param {number} stepNumber - The step number
+ */
+function focusFirstInput(stepNumber) {
+  const stepEl = document.querySelector(`.form-step[data-step="${stepNumber}"]`);
+  if (!stepEl) return;
+
+  const firstInput = stepEl.querySelector("input, select, textarea");
+  if (firstInput) {
+    // Delay for CSS transition
+    setTimeout(() => {
+      firstInput.focus();
+    }, 300);
+  }
+}
+
 // ----- Init Event Listeners -----
+
 /**
  * Initialize all event listeners
  */
@@ -80,15 +188,20 @@ function initEventListeners() {
       applyTheme(getSystemTheme());
     }
   });
+
+  elements.prevBtn.addEventListener("click", goToPrevStep);
+  elements.nextBtn.addEventListener("click", goToNextStep);
 }
 
 // ----- Init App -----
+
 /**
  * Initialize the application
  */
 function init() {
   initTheme();
   initEventListeners();
+  goToStep(state.currStep);
 }
 
 if (document.readyState === "loading") {
