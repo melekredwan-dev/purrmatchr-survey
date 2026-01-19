@@ -27,11 +27,14 @@ const elements = {
 
 const state = {
   currStep: 1,
-  totalSteps: 4
+  totalSteps: 4,
+  formData: {}
 };
 
 const STORAGE_KEYS = {
-  THEME_MODE: "purrmatchr-theme-mode"
+  THEME_MODE: "purrmatchr-theme-mode",
+  FORM_DATA: "purrmatchr-form-data",
+  CURRENT_STEP: "purrmatchr-current-step"
 };
 
 const THEME_MODES = ["light", "dark", "system"];
@@ -112,6 +115,7 @@ function goToStep(stepNumber) {
 
   updateProgressIndicator();
   updateNavigationButtons();
+  localStorage.setItem(STORAGE_KEYS.CURRENT_STEP, stepNumber.toString());
   focusFirstInput(stepNumber);
 }
 
@@ -121,6 +125,7 @@ function goToStep(stepNumber) {
  */
 function goToNextStep() {
   if (validateCurrentStep()) {
+    saveFormData();
     goToStep(state.currStep + 1);
   }
 }
@@ -129,6 +134,7 @@ function goToNextStep() {
  * Go to previous step
  */
 function goToPrevStep() {
+  saveFormData();
   goToStep(state.currStep - 1);
 }
 
@@ -361,6 +367,88 @@ function initCharCounters() {
   }
 }
 
+// ----- Local Storage -----
+
+/**
+ * Save current form data to local storage
+ */
+function saveFormData() {
+  const formData = new FormData(elements.form);
+  const data = {};
+
+  for (const [key, value] of formData.entries()) {
+    if (data[key]) {
+      if (Array.isArray(data[key])) {
+        data[key].push(value);
+      } else {
+        data[key] = [data[key], value];
+      }
+    } else {
+      data[key] = value;
+    }
+  }
+
+  localStorage.setItem(STORAGE_KEYS.FORM_DATA, JSON.stringify(data));
+  state.formData = data;
+}
+
+/**
+ * Load saved form data from localStorage
+ */
+function loadFormData() {
+  const savedData = localStorage.getItem(STORAGE_KEYS.FORM_DATA);
+  if (!savedData) return;
+
+  try {
+    const data = JSON.parse(savedData);
+    state.formData = data;
+
+    // Populate form fields
+    Object.entries(data).forEach(([key, value]) => {
+      const fields = elements.form.querySelectorAll(`[name="${key}"]`);
+
+      fields.forEach((field) => {
+        if (field.type === "checkbox") {
+          const values = Array.isArray(value) ? value : [value];
+          field.checked = values.includes(field.value);
+        } else if (field.type === "radio") {
+          field.checked = field.value === value;
+        } else {
+          field.value = value;
+        }
+      });
+    });
+
+    updateCharCount(elements.whyAdoptTextarea, elements.whyAdoptCount);
+    updateCharCount(elements.additionalInfoTextarea, elements.additionalInfoCount);
+  } catch(err) {
+    console.error("Error loading saved form data:", err);
+  }
+}
+
+/**
+ * Load saved step from localStorage
+ */
+function loadSavedStep() {
+  const savedStep = localStorage.getItem(STORAGE_KEYS.CURRENT_STEP);
+  if (savedStep) {
+    const stepNum = parseInt(savedStep);
+    if (stepNum >= 1 && stepNum <= state.totalSteps) {
+      state.currStep = stepNum;
+    }
+  }
+}
+
+/**
+ * Clear all saved form data from localStorage
+ */
+function clearSavedData() {
+  localStorage.removeItem(STORAGE_KEYS.FORM_DATA);
+  localStorage.removeItem(STORAGE_KEYS.CURRENT_STEP);
+  state.formData = {};
+  state.currStep = 1;
+}
+
 // ----- Real-time Validation -----
 
 /**
@@ -406,6 +494,8 @@ function initEventListeners() {
   elements.prevBtn.addEventListener("click", goToPrevStep);
   elements.nextBtn.addEventListener("click", goToNextStep);
   elements.submitBtn.addEventListener("click", handleSubmit);
+
+  window.addEventListener("beforeunload", saveFormData);
 }
 
 /**
@@ -428,6 +518,8 @@ function handleSubmit(e) {
  */
 function init() {
   initTheme();
+  loadFormData();
+  loadSavedStep();
   initCharCounters();
   initRealTimeValidation();
   initEventListeners();
