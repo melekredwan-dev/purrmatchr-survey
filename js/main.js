@@ -16,7 +16,13 @@ const elements = {
 
   // Progress
   progressFill: document.querySelector(".progress-fill"),
-  progressSteps: document.querySelectorAll(".progress-step")
+  progressSteps: document.querySelectorAll(".progress-step"),
+
+  // Textareas w/ char counts
+  whyAdoptTextarea: document.getElementById("why-adopt"),
+  whyAdoptCount: document.getElementById("why-adopt-count"),
+  additionalInfoTextarea: document.getElementById("additional-info"),
+  additionalInfoCount: document.getElementById("additional-info-count")
 };
 
 const state = {
@@ -111,10 +117,12 @@ function goToStep(stepNumber) {
 
 
 /**
- * Go to the next step
+ * Go to the next step (if current step is valid)
  */
 function goToNextStep() {
-  goToStep(state.currStep + 1);
+  if (validateCurrentStep()) {
+    goToStep(state.currStep + 1);
+  }
 }
 
 /**
@@ -173,6 +181,212 @@ function focusFirstInput(stepNumber) {
   }
 }
 
+// ----- Form Validation -----
+
+/**
+ * Validate the current step's required fields
+ * @returns {boolean} - Whether the step is valid
+ */
+function validateCurrentStep() {
+  const currStepEl = document.querySelector(`.form-step[data-step="${state.currStep}"]`);
+  if (!currStepEl) return true;
+
+  const requiredInputs = currStepEl.querySelectorAll("[required]");
+  let isValid = true;
+
+  requiredInputs.forEach(input => {
+    if (!validateField(input)) isValid = false;
+  });
+
+  return isValid;
+}
+
+/**
+ * Validate a single form field
+ * @param {HTMLElement} field - The form field to validate
+ * @returns {boolean} - Whether the field is valid
+ */
+function validateField(field) {
+  const errEl = document.getElementById(`${field.id}-error`)
+    || document.getElementById(`${field.name}-error`)
+    || field.closest(".form-group")?.querySelector(".error-message");
+  let isValid = true;
+  let errMsg = "";
+
+  // Check if required field is empty
+  const isEmpty = field.type === "checkbox" ? !field.checked : !field.value.trim();
+  if (field.hasAttribute("required") && isEmpty) {
+    isValid = false;
+    errMsg = getRequiredErrorMessage(field);
+  } 
+  // Check specific validation rules
+  else if (field.value.trim()) {
+    switch (field.type) {
+      case "email":
+        if (!isValidEmail(field.value)) {
+          isValid = false;
+          errMsg = "Please enter a valid email address";
+        }
+        break;
+      case "number":
+        const min = parseInt(field.min);
+        const max = parseInt(field.max);
+        const val = parseInt(field.value);
+        
+        if (isNaN(val)) {
+          isValid = false;
+          errMsg = "Please enter a valid number";
+        } else if (val < min) {
+          isValid = false;
+          errMsg = `Must be at least ${min}`;
+        } else if (val > max) {
+          isValid = false;
+          errMsg = `Must be no more than ${max}`;
+        }
+
+        break;
+      case "tel":
+        if (field.value && !isValidPhone(field.value)) {
+          isValid = false;
+          errMsg = "Please enter a valid phone number";
+        }
+        break;
+    }
+  }
+
+  // Update field appearance and err message
+  if (errEl) errEl.textContent = errMsg;
+
+  if (isValid) {
+    field.classList.remove("error");
+    if (field.value.trim()) {
+      field.classList.add("valid");
+    }
+  } else {
+    field.classList.remove("valid");
+    field.classList.add("error");
+  }
+
+  return isValid;
+}
+
+/**
+ * Get the correct error message for a required field
+ * @param {HTMLElement} field - The form field
+ * @returns {string} - The error message
+ */
+function getRequiredErrorMessage(field) {
+  const fieldName = field.id || field.name;
+  
+  const messages = {
+    "name": "Please enter your name",
+    "email": "Please enter your email address",
+    "age": "Please enter your age",
+    "why-adopt": "Please tell us why you want to adopt",
+    "terms": "You must acknowledge this is not a real form or survey"
+  };
+
+
+  return messages[fieldName] || "This field is required";
+}
+
+/**
+ * Validate email format
+ * @param {string} email - The email to validate
+ * @return {boolean} - Whether the email is valid 
+ */
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+/**
+ * Validate phone number format
+ * @param {string} phone - The phone number ot validate
+ * @return {boolean} - Whether the phone number is valid
+ */
+function isValidPhone(phone) {
+  const cleanedPhone = phone.replace(/[\s\-\(\)\.]/g, '');
+  return /^\+?\d{7,15}$/.test(cleanedPhone);
+}
+
+/**
+ * Clear validation styling form a field
+ * @param {HTMLElement} field - The form field
+ */
+function clearFieldValidationStyles(field) {
+  field.classList.remove("error", "valid");
+  const errEl = document.getElementById(`${field.id}-error`) || field.parentElement.querySelector(".error-message");
+  if (errEl) errEl.textContent = "";
+}
+
+// ----- Textarea Char Counters -----
+
+/**
+ * Update char count display for a textarea
+ * @param {HTMLTextAreaElement} textarea - The textarea element
+ * @param {HTMLElement} countEl - The count display element
+ */
+function updateCharCount(textarea, countEl) {
+  if (!textarea || !countEl) return;
+
+  const currLen = textarea.value.length;
+  const maxLen = textarea.getAttribute("maxlength") || 0;
+  countEl.textContent = `${currLen} / ${maxLen}`;
+
+  // Warning when approaching the char count limit
+  if (currLen >= maxLen * 0.9) {
+    countEl.style.color = "var(--color-error)";
+  } else {
+    countEl.style.color = "";
+  }
+}
+
+/**
+ * Initialize char counters for all textareas
+ */
+function initCharCounters() {
+  if (elements.whyAdoptTextarea && elements.whyAdoptCount) {
+    updateCharCount(elements.whyAdoptTextarea, elements.whyAdoptCount);
+    elements.whyAdoptTextarea.addEventListener("input", () => {
+      updateCharCount(elements.whyAdoptTextarea, elements.whyAdoptCount);
+    });
+  }
+
+  if (elements.additionalInfoTextarea, elements.additionalInfoCount) {
+    updateCharCount(elements.additionalInfoTextarea, elements.additionalInfoCount);
+    elements.additionalInfoTextarea.addEventListener("input", () => {
+      updateCharCount(elements.additionalInfoTextarea, elements.additionalInfoCount);
+    });
+  }
+}
+
+// ----- Real-time Validation -----
+
+/**
+ * Set up real-time validation on form fields
+ */
+function initRealTimeValidation() {
+  const inputs = elements.form.querySelectorAll("input, select, textarea");
+
+  inputs.forEach(input => {
+    input.addEventListener("blur", () => {
+      if (input.hasAttribute("required") || input.value.trim()) {
+        validateField(input);
+      }
+    });
+
+    input.addEventListener("input", () => {
+      // Track whether field has content for CSS styling
+      input.classList.toggle("has-value", !!input.value.trim());
+
+      if (input.classList.contains("error") || input.classList.contains("valid")) {
+        clearFieldValidationStyles(input);
+      }
+    });
+  });
+}
+
 // ----- Init Event Listeners -----
 
 /**
@@ -191,6 +405,20 @@ function initEventListeners() {
 
   elements.prevBtn.addEventListener("click", goToPrevStep);
   elements.nextBtn.addEventListener("click", goToNextStep);
+  elements.submitBtn.addEventListener("click", handleSubmit);
+}
+
+/**
+ * Handle form submission (if current step is valid)
+ * @param {Event} e - The click event
+ */
+function handleSubmit(e) {
+  e.preventDefault();
+
+  if (validateCurrentStep()) {
+    // Form is valid - submit or show success
+    elements.form.submit();
+  }
 }
 
 // ----- Init App -----
@@ -200,6 +428,8 @@ function initEventListeners() {
  */
 function init() {
   initTheme();
+  initCharCounters();
+  initRealTimeValidation();
   initEventListeners();
   goToStep(state.currStep);
 }
