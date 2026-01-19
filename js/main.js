@@ -22,7 +22,11 @@ const elements = {
   whyAdoptTextarea: document.getElementById("why-adopt"),
   whyAdoptCount: document.getElementById("why-adopt-count"),
   additionalInfoTextarea: document.getElementById("additional-info"),
-  additionalInfoCount: document.getElementById("additional-info-count")
+  additionalInfoCount: document.getElementById("additional-info-count"),
+
+  // Success
+  successMsg: document.getElementById("success-message"),
+  restartBtn: document.getElementById("restart-btn")
 };
 
 const state = {
@@ -359,7 +363,7 @@ function initCharCounters() {
     });
   }
 
-  if (elements.additionalInfoTextarea, elements.additionalInfoCount) {
+  if (elements.additionalInfoTextarea && elements.additionalInfoCount) {
     updateCharCount(elements.additionalInfoTextarea, elements.additionalInfoCount);
     elements.additionalInfoTextarea.addEventListener("input", () => {
       updateCharCount(elements.additionalInfoTextarea, elements.additionalInfoCount);
@@ -449,6 +453,74 @@ function clearSavedData() {
   state.currStep = 1;
 }
 
+// ----- Form Submission -----
+
+/**
+ * Handle form submission
+ * @param {Event} e - The submit event
+ */
+function handleSubmit(e) {
+  e.preventDefault();
+  if (!validateCurrentStep()) return;
+  
+  saveFormData();
+  // Demo success message
+  console.log("Form submitted with data:", state.formData);
+
+  showSuccessMessage();
+  clearSavedData();
+}
+
+/**
+ * Show the success message and hide the form
+ */
+function showSuccessMessage() {
+  elements.form.hidden = true;
+  document.querySelector(".progress-container").hidden = true;
+  elements.successMsg.hidden = false;
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/**
+ * Restart the form (for "Submit Another Response" button)
+ */
+function restartForm() {
+  elements.form.reset();
+
+  elements.form.querySelectorAll("input, select, textarea").forEach(field => {
+    clearFieldValidationStyles(field);
+  });
+
+  updateCharCount(elements.whyAdoptTextarea, elements.whyAdoptCount);
+  updateCharCount(elements.additionalInfoTextarea, elements.additionalInfoCount);
+
+  elements.form.hidden = false;
+  document.querySelector(".progress-container").hidden = false;
+  elements.successMsg.hidden = true;
+
+  goToStep(1);
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// ----- Keyboard Navigation -----
+
+/**
+ * Handle keyboard navigation
+ * @param {KeyboardEvent} e - The keyboard event
+ */
+function handleKeyboardNavigation(e) {
+  if (e.key === "Enter" && e.target.tagName !== "TEXTAREA" && e.target.tagName !== "BUTTON") {
+    e.preventDefault();
+    if (state.currStep === state.totalSteps) {
+      elements.submitBtn.click();
+    } else {
+      elements.nextBtn.click();
+    }
+  }
+}
+
 // ----- Real-time Validation -----
 
 /**
@@ -493,22 +565,12 @@ function initEventListeners() {
 
   elements.prevBtn.addEventListener("click", goToPrevStep);
   elements.nextBtn.addEventListener("click", goToNextStep);
-  elements.submitBtn.addEventListener("click", handleSubmit);
 
+  elements.form.addEventListener("submit", handleSubmit);
+  elements.form.addEventListener("keydown", handleKeyboardNavigation);
+  elements.restartBtn.addEventListener("click", restartForm);
+  
   window.addEventListener("beforeunload", saveFormData);
-}
-
-/**
- * Handle form submission (if current step is valid)
- * @param {Event} e - The click event
- */
-function handleSubmit(e) {
-  e.preventDefault();
-
-  if (validateCurrentStep()) {
-    // Form is valid - submit or show success
-    elements.form.submit();
-  }
 }
 
 // ----- Init App -----
