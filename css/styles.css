@@ -391,6 +391,32 @@ main {
   font-weight: 500;
 }
 
+/* Clickable Progress Steps */
+.progress-step:not(.clickable) {
+  cursor: not-allowed;
+}
+
+.progress-step.clickable {
+  cursor: pointer;
+}
+
+.progress-step.clickable:hover .step-number {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-md);
+}
+
+.progress-step.clickable:focus-visible {
+  outline: none;
+}
+
+.progress-step.clickable:focus-visible .step-number {
+  box-shadow: var(--focus-ring);
+}
+
+.step-number {
+  transition: background-color var(--transition-normal), color var(--transition-normal), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
 /* ========== Form Styles (Base) ========== */
 #survey-form {
   background-color: var(--color-surface);
@@ -403,6 +429,44 @@ main {
   #survey-form {
     padding: var(--space-xl);
   }
+}
+
+/* ---------- Form Header w/ Reset Button ---------- */
+.form-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-md);
+}
+
+.btn-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.btn-reset:hover {
+  color: var(--color-error);
+  background-color: var(--color-error-light);
+  border-color: var(--color-error);
+}
+
+.btn-reset:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.btn-reset svg {
+  width: 14px;
+  height: 14px;
 }
 
 .form-step {
@@ -919,6 +983,100 @@ textarea {
 
 .success-message .btn {
   margin-top: var(--space-xl);
+}
+
+/* ---------- Modal ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  z-index: 1000;
+  animation: fadeIn var(--transition-fast);
+}
+
+.modal-overlay[hidden] {
+  display: none;
+}
+
+.modal {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  animation: modalSlideIn var(--transition-normal);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto var(--space-md);
+  background-color: var(--color-error-light);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-icon svg {
+  width: 28px;
+  height: 28px;
+  color: var(--color-error);
+}
+
+.modal h2 {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--space-sm);
+}
+
+.modal p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  margin-bottom: var(--space-lg);
+}
+
+.modal-actions {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.modal-actions .btn {
+  flex: 1;
+}
+
+/* Danger Button */
+.btn-danger {
+  background-color: var(--color-error);
+  color: #FFF;
+  border-color: var(--color-error);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #d32f2f;
+  border-color: #d32f2f;
+  transform: translateY(-1px);
+}
+
+.btn-danger:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 /* ========== Footer ========== */

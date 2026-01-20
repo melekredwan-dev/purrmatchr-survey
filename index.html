@@ -80,6 +80,18 @@
 
       <form id="survey-form" novalidate>
 
+        <div class="form-header">
+          <button
+            type="button"
+            class="btn-reset"
+            id="reset-btn"
+            aria-label="Reset form"
+          >
+            <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+            <span>Reset</span>
+          </button>
+        </div>
+
         <fieldset class="form-step active" data-step="1">
 
           <legend class="sr-only">Step 1: About You</legend>
@@ -685,6 +697,23 @@
       </nav>
     </footer>
 
+  </div>
+
+  <!-- Reset Confirmation Modal -->
+  <div class="modal-overlay" id="reset-modal" hidden>
+    <div class="modal" role="dialog" aria-labelledby="modal-title" aria-describedby="modal-description">
+      <div class="modal-icon">
+        <i data-lucide="alert-triangle" aria-hidden="true"></i>
+      </div>
+      <h2 id="modal-title">Reset Form?</h2>
+      <p id="modal-description">
+        This will clear all your answers and start over from the beginning. This action cannot be undone.
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="modal-cancel">Cancel</button>
+        <button type="button" class="btn btn-danger" id="modal-confirm">Reset Form</button>
+      </div>
+    </div>
   </div>
 
   <!-- Scripts -->

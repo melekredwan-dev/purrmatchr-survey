@@ -26,7 +26,13 @@ const elements = {
 
   // Success
   successMsg: document.getElementById("success-message"),
-  restartBtn: document.getElementById("restart-btn")
+  restartBtn: document.getElementById("restart-btn"),
+
+  // Reset Modal
+  resetBtn: document.getElementById("reset-btn"),
+  resetModal: document.getElementById("reset-modal"),
+  modalCancel: document.getElementById("modal-cancel"),
+  modalConfirm: document.getElementById("modal-confirm")
 };
 
 const state = {
@@ -119,6 +125,7 @@ function goToStep(stepNumber) {
 
   updateProgressIndicator();
   updateNavigationButtons();
+  updateProgressStepsClickable();
   localStorage.setItem(STORAGE_KEYS.CURRENT_STEP, stepNumber.toString());
   focusFirstInput(stepNumber);
 }
@@ -189,6 +196,75 @@ function focusFirstInput(stepNumber) {
       firstInput.focus();
     }, 300);
   }
+}
+
+/**
+ * Handle click on progress step indicators
+ * @param {number} targetStep - The step to navigate to
+ */
+function handleProgressStepClick(targetStep) {
+  if (targetStep === state.currStep) return;
+
+  // Allow navigation to completed steps (going back) without validation
+  if (targetStep < state.currStep) {
+    saveFormData();
+    goToStep(targetStep);
+    return;
+  }
+
+  // Going forward: validate all steps up to and including the current step
+  // then allow navigation only to the next incomplete step
+  if (validateCurrentStep()) {
+    saveFormData();
+    // Only allow going one step forward at a time
+    if (targetStep === state.currStep + 1) {
+      goToStep(targetStep);
+    }
+  }
+}
+
+/**
+ * Update clickable state of progress steps
+ */
+function updateProgressStepsClickable() {
+  elements.progressSteps.forEach(step => {
+    const stepNum = parseInt(step.dataset.step);
+
+    // Make completed steps and the next available step clickable
+    if (stepNum <= state.currStep || stepNum === state.currStep + 1) {
+      step.classList.add("clickable");
+      step.setAttribute("tabindex", "0");
+      step.setAttribute("role", "button");
+      step.setAttribute("aria-label", `Go to step ${stepNum}`);
+    } else {
+      step.classList.remove("clickable");
+      step.removeAttribute("tabindex");
+      step.removeAttribute("role");
+      step.removeAttribute("aria-label");
+    }
+  });
+}
+
+/**
+ * Initialize progress step click handlers
+ */
+function initProgressStepNavigation() {
+  elements.progressSteps.forEach(step => {
+    step.addEventListener("click", () => {
+      if (step.classList.contains("clickable")) {
+        handleProgressStepClick(parseInt(step.dataset.step));
+      }
+    });
+
+    step.addEventListener("keydown", (e) => {
+      if ((e.key === "Enter" || e.key === " ") && step.classList.contains("clickable")) {
+        e.preventDefault();
+        handleProgressStepClick(parseInt(step.dataset.step));
+      }
+    });
+  });
+
+  updateProgressStepsClickable();
 }
 
 // ----- Form Validation -----
@@ -504,6 +580,55 @@ function restartForm() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+// ----- Reset Modal -----
+
+/**
+ * Open the reset confirmation modal
+ */
+function openResetModal() {
+  elements.resetModal.hidden = false;
+  elements.modalCancel.focus();
+  document.body.style.overflow = "hidden";
+}
+
+/**
+ * Close the reset confirmation modal
+ */
+function closeResetModal() {
+  elements.resetModal.hidden = true;
+  document.body.style.overflow = "";
+  elements.resetBtn.focus();
+}
+
+/**
+ * Confirm form reset from modal
+ */
+function confirmReset() {
+  closeResetModal();
+  clearSavedData();
+  restartForm();
+}
+
+/**
+ * Handle clicks on modal overlay (close if clicking outside modal)
+ * @param {Event} e - The click event
+ */
+function handleModalOverlayClick(e) {
+  if (e.target === elements.resetModal) {
+    closeResetModal();
+  }
+}
+
+/**
+ * Handle Escape key to close modal
+ * @param {KeyboardEvent} e - The keyboard event
+ */
+function handleModalKeydown(e) {
+  if (e.key === "Escape" && !elements.resetModal.hidden) {
+    closeResetModal();
+  }
+}
+
 // ----- Keyboard Navigation -----
 
 /**
@@ -569,7 +694,14 @@ function initEventListeners() {
   elements.form.addEventListener("submit", handleSubmit);
   elements.form.addEventListener("keydown", handleKeyboardNavigation);
   elements.restartBtn.addEventListener("click", restartForm);
-  
+
+  // Reset modal
+  elements.resetBtn.addEventListener("click", openResetModal);
+  elements.modalCancel.addEventListener("click", closeResetModal);
+  elements.modalConfirm.addEventListener("click", confirmReset);
+  elements.resetModal.addEventListener("click", handleModalOverlayClick);
+  document.addEventListener("keydown", handleModalKeydown);
+
   window.addEventListener("beforeunload", saveFormData);
 }
 
@@ -584,6 +716,7 @@ function init() {
   loadSavedStep();
   initCharCounters();
   initRealTimeValidation();
+  initProgressStepNavigation();
   initEventListeners();
   goToStep(state.currStep);
 }
