@@ -480,6 +480,7 @@ function saveFormData(showNotification = false) {
 
 /**
  * Load saved form data from localStorage
+ * @returns {boolean} Whether saved data was found and loaded
  */
 function loadFormData() {
   const savedData = localStorage.getItem(STORAGE_KEYS.FORM_DATA);
@@ -507,8 +508,11 @@ function loadFormData() {
 
     updateCharCount(elements.whyAdoptTextarea, elements.whyAdoptCount);
     updateCharCount(elements.additionalInfoTextarea, elements.additionalInfoCount);
+    
+    return true;
   } catch(err) {
     console.error("Error loading saved form data:", err);
+    return false;
   }
 }
 
@@ -768,14 +772,26 @@ function initEventListeners() {
  */
 function init() {
   initTheme();
-  loadFormData();
+  const hasRestoredData = loadFormData();
   loadSavedStep();
   initCharCounters();
   initRealTimeValidation();
   initProgressStepNavigation();
   initEventListeners();
   goToStep(state.currStep);
-}
+
+  // Show restore notification if data was loaded
+  if (hasRestoredData) {
+    showToast("Your progress has been restored", "info", {
+      duration: 5000,
+      actionText: "Start fresh",
+      actionCallback: () => {
+        clearSavedData();
+        restartForm();
+      }
+    });
+  }
+ }
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init);
