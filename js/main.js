@@ -32,7 +32,10 @@ const elements = {
   resetBtn: document.getElementById("reset-btn"),
   resetModal: document.getElementById("reset-modal"),
   modalCancel: document.getElementById("modal-cancel"),
-  modalConfirm: document.getElementById("modal-confirm")
+  modalConfirm: document.getElementById("modal-confirm"),
+
+  // Toast
+  toastContainer: document.getElementById("toast-container")
 };
 
 const state = {
@@ -136,7 +139,7 @@ function goToStep(stepNumber) {
  */
 function goToNextStep() {
   if (validateCurrentStep()) {
-    saveFormData();
+    saveFormData(true);
     goToStep(state.currStep + 1);
   }
 }
@@ -145,7 +148,7 @@ function goToNextStep() {
  * Go to previous step
  */
 function goToPrevStep() {
-  saveFormData();
+  saveFormData(true);
   goToStep(state.currStep - 1);
 }
 
@@ -207,7 +210,7 @@ function handleProgressStepClick(targetStep) {
 
   // Allow navigation to completed steps (going back) without validation
   if (targetStep < state.currStep) {
-    saveFormData();
+    saveFormData(true);
     goToStep(targetStep);
     return;
   }
@@ -215,7 +218,7 @@ function handleProgressStepClick(targetStep) {
   // Going forward: validate all steps up to and including the current step
   // then allow navigation only to the next incomplete step
   if (validateCurrentStep()) {
-    saveFormData();
+    saveFormData(true);
     // Only allow going one step forward at a time
     if (targetStep === state.currStep + 1) {
       goToStep(targetStep);
@@ -451,8 +454,9 @@ function initCharCounters() {
 
 /**
  * Save current form data to local storage
+ * @param {boolean} showNotification - Whether to show the save toast
  */
-function saveFormData() {
+function saveFormData(showNotification = false) {
   const formData = new FormData(elements.form);
   const data = {};
 
@@ -470,6 +474,8 @@ function saveFormData() {
 
   localStorage.setItem(STORAGE_KEYS.FORM_DATA, JSON.stringify(data));
   state.formData = data;
+
+  if (showNotification) showToast("Draft saved", "success", { duration: 2000 });
 }
 
 /**
@@ -627,6 +633,56 @@ function handleModalKeydown(e) {
   if (e.key === "Escape" && !elements.resetModal.hidden) {
     closeResetModal();
   }
+}
+
+// ----- Toast Notifications -----
+/**
+ * Show a toast notification
+ * @param {string} message - The message to display
+ * @param {string} type - The toast type: "success", "info"
+ * @param {Object} options - Optional settings
+ * @param {number} options.duration - Auto-dismiss duration in ms (default: 3000, 0 = no auto-dismiss)
+ * @param {string} options.actionText - Optional action link text
+ * @param {Function} options.actionCallback - Optional action callback
+ * @returns {HTMLElement} The toast element
+ */
+function showToast(message, type = "info", options = {}) {
+  const { duration = 3000, actionText, actionCallback } = options;
+
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+  const iconName = type === "success" ? "check-circle" : "info";
+
+  toast.innerHTML = `
+    <i data-lucide="${iconName}" aria-hidden="true"></i>
+    <span>${message}</span>
+    ${actionText ? `<button type="button" class="toast-link">${actionText}</button>` : ""}
+  `;
+
+  if (actionText && actionCallback) {
+    toast.querySelector(".toast-link").addEventListener("click", () => {
+      dismissToast(toast);
+      actionCallback();
+    });
+  }
+
+  elements.toastContainer.appendChild(toast);
+  lucide.createIcons({ nodes: [toast] });
+
+  if (duration > 0) setTimeout(() => dismissToast(toast), duration);
+
+  return toast;
+}
+
+/**
+ * Dismiss a toast notification
+ * @param {HTMLElement} toast - The toast element to dismiss
+ */
+function dismissToast(toast) {
+  if (!toast || !toast.parentNode) return;
+  
+  toast.classList.add("toast-exit");
+  toast.addEventListener("animationend", () => toast.remove());
 }
 
 // ----- Keyboard Navigation -----
