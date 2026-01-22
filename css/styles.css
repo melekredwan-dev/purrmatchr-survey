@@ -791,6 +791,128 @@ textarea {
   border-top: 1px solid var(--color-border);
 }
 
+/* ---------- Step Summary ---------- */
+.step-summary {
+  background-color: var(--color-background);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-xl);
+  transition: border var(--transition-fast);
+}
+
+.step-summary:hover {
+  border: 2px solid var(--color-text-light);
+}
+
+.step-summary summary {
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--color-text);
+  list-style: none;
+}
+
+.step-summary summary:-webkit-details-marker {
+  display: none;
+}
+
+.step-summary summary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-md);
+}
+
+.step-summary summary svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-primary);
+}
+
+.step-summary summary .summary-chevron {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  transition: transform var(--transition-fast);
+}
+
+.step-summary[open] summary .summary-chevron {
+  transform: rotate(180deg);
+}
+
+.summary-content {
+  padding: var(--space-md);
+}
+
+.summary-section {
+  padding: var(--space-md) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.summary-section:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.summary-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.summary-section-title {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-edit-link {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.summary-edit-link:hover {
+  text-decoration: underline;
+  color: var(--color-primary-hover);
+}
+
+.summary-edit-link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+.summary-item {
+  display: flex;
+  font-size: var(--font-size-sm);
+  padding: var(--space-xs) 0;
+}
+
+.summary-label {
+  color: var(--color-text-muted);
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+.summary-value {
+  color: var(--color-text);
+}
+
+.summary-value:empty::after {
+  content: "Not provided";
+  color: var(--color-text-light);
+  font-style: italic;
+}
+
 /* ---------- Buttons ---------- */
 .btn {
   display: inline-flex;

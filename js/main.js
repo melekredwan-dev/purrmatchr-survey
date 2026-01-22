@@ -35,13 +35,21 @@ const elements = {
   modalConfirm: document.getElementById("modal-confirm"),
 
   // Toast
-  toastContainer: document.getElementById("toast-container")
+  toastContainer: document.getElementById("toast-container"),
+
+  // Step Summary
+  stepSummary: document.getElementById("step-summary"),
+  summaryContent: document.getElementById("summary-content"),
+
+  // ARIA Announcer
+  stepAnnouncer: document.getElementById("step-announcer")
 };
 
 const state = {
   currStep: 1,
   totalSteps: 4,
-  formData: {}
+  formData: {},
+  focusTimeout: null
 };
 
 const STORAGE_KEYS = {
@@ -131,6 +139,12 @@ function goToStep(stepNumber) {
   updateProgressStepsClickable();
   localStorage.setItem(STORAGE_KEYS.CURRENT_STEP, stepNumber.toString());
   focusFirstInput(stepNumber);
+
+  // Announce step change for screen readers
+  const stepLabels = ["About You", "Living Situation", "Cat Preferences", "Final Details"];
+  announce(`Step ${stepNumber} of ${state.totalSteps}: ${stepLabels[stepNumber - 1]}`);
+
+  if (stepNumber === state.totalSteps) populateStepSummary();
 }
 
 
@@ -162,13 +176,15 @@ function updateProgressIndicator() {
   elements.progressSteps.forEach(step => {
     const stepNum = parseInt(step.dataset.step);
     step.classList.remove("active", "completed");
+    step.removeAttribute("aria-current");
 
     if (stepNum === state.currStep) {
       step.classList.add("active");
+      step.setAttribute("aria-current", "step");
     } else if (stepNum < state.currStep) {
       step.classList.add("completed");
     }
-  }); 
+  });
 }
 
 /**
@@ -189,13 +205,15 @@ function updateNavigationButtons() {
  * @param {number} stepNumber - The step number
  */
 function focusFirstInput(stepNumber) {
+  clearTimeout(state.focusTimeout);
+
   const stepEl = document.querySelector(`.form-step[data-step="${stepNumber}"]`);
   if (!stepEl) return;
 
   const firstInput = stepEl.querySelector("input, select, textarea");
   if (firstInput) {
     // Delay for CSS transition
-    setTimeout(() => {
+    state.focusTimeout = setTimeout(() => {
       firstInput.focus();
     }, 300);
   }
@@ -282,10 +300,19 @@ function validateCurrentStep() {
 
   const requiredInputs = currStepEl.querySelectorAll("[required]");
   let isValid = true;
+  let firstInvalidField = null;
 
   requiredInputs.forEach(input => {
-    if (!validateField(input)) isValid = false;
+    if (!validateField(input)) {
+      isValid = false;
+      if (!firstInvalidField) firstInvalidField = input;
+    }
   });
+
+  if (!isValid) {
+    announce("Please fix the errors before continuing");
+    if (firstInvalidField) firstInvalidField.focus();
+  }
 
   return isValid;
 }
@@ -348,12 +375,14 @@ function validateField(field) {
 
   if (isValid) {
     field.classList.remove("error");
+    field.removeAttribute("aria-invalid");
     if (field.value.trim()) {
       field.classList.add("valid");
     }
   } else {
     field.classList.remove("valid");
     field.classList.add("error");
+    field.setAttribute("aria-invalid", "true");
   }
 
   return isValid;
@@ -405,6 +434,7 @@ function isValidPhone(phone) {
  */
 function clearFieldValidationStyles(field) {
   field.classList.remove("error", "valid");
+  field.removeAttribute("aria-invalid");
   const errEl = document.getElementById(`${field.id}-error`) || field.parentElement.querySelector(".error-message");
   if (errEl) errEl.textContent = "";
 }
@@ -554,6 +584,7 @@ function handleSubmit(e) {
   console.log("Form submitted with data:", state.formData);
 
   showSuccessMessage();
+  announce("Form submitted successfully. Thank you!");
   clearSavedData();
 }
 
@@ -564,6 +595,8 @@ function showSuccessMessage() {
   elements.form.hidden = true;
   document.querySelector(".progress-container").hidden = true;
   elements.successMsg.hidden = false;
+  elements.successMsg.setAttribute("tabindex", "-1");
+  elements.successMsg.focus();
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -617,6 +650,7 @@ function confirmReset() {
   closeResetModal();
   clearSavedData();
   restartForm();
+  announce("Form has been reset");
 }
 
 /**
@@ -630,12 +664,32 @@ function handleModalOverlayClick(e) {
 }
 
 /**
- * Handle Escape key to close modal
+ * Handle keyboard events for modal (Escape to close, Tab to trap focus)
  * @param {KeyboardEvent} e - The keyboard event
  */
 function handleModalKeydown(e) {
-  if (e.key === "Escape" && !elements.resetModal.hidden) {
+  if (elements.resetModal.hidden) return;
+
+  if (e.key === "Escape") {
     closeResetModal();
+    return;
+  }
+
+  // Focus trapping
+  if (e.key === "Tab") {
+    const focusableEls = elements.resetModal.querySelectorAll(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    const firstEl = focusableEls[0];
+    const lastEl = focusableEls[focusableEls.length - 1];
+
+    if (e.shiftKey && document.activeElement === firstEl) {
+      e.preventDefault();
+      lastEl.focus();
+    } else if (!e.shiftKey && document.activeElement === lastEl) {
+      e.preventDefault();
+      firstEl.focus();
+    }
   }
 }
 
@@ -687,6 +741,175 @@ function dismissToast(toast) {
   
   toast.classList.add("toast-exit");
   toast.addEventListener("animationend", () => toast.remove());
+}
+
+// ----- ARIA Announcements -----
+
+/**
+ * Announce a message to screen readers
+ * @param {string} message - The message to announce
+ */
+function announce(message) {
+  if (!elements.stepAnnouncer) return;
+
+  elements.stepAnnouncer.textContent = "";
+  setTimeout(() => {
+    elements.stepAnnouncer.textContent = message;
+  }, 50);
+}
+
+// ----- Step Summary -----
+/**
+ * Get the label text for a form field
+ * @param {string} name - The field name
+ * @returns {string} The human-readable label
+ */
+function getFieldLabel(name) {
+  const labels = {
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "age": "Age",
+    "housing": "Housing type",
+    "ownership": "Ownership",
+    "yard": "Outdoor space",
+    "other-pets": "Other pets",
+    "cat-age": "Preferred cat age",
+    "energy-level": "Energy Level",
+    "coat-length": "Coat Length",
+    "special-needs": "Special Needs",
+    "experience": "Experience"
+  };
+
+  return labels[name] || name;
+}
+
+/**
+ * Format a form value for display
+ * @param {string} name - The field name
+ * @param {string|string[]} value - The field value(s)
+ * @returns {string} Formatted display value
+ */
+function formatFieldValue(name, value) {
+  if (!value || Array.isArray(value) && value.length === 0) return "";
+
+  const valueLabels = {
+    // Housing
+    "apartment": "Apartment",
+    "townhouse": "Townhouse",
+    "house": "House",
+    "other": "Other",
+    // Ownership
+    "own": "I own my home",
+    "rent": "I rent",
+    "live-with-family": "I live with family",
+    // Yard
+    "yes": "Yes",
+    "no": "No",
+    "balcony": "Balcony / Patio only",
+    // Other pets
+    "cats": "Cats",
+    "dogs": "Dogs",
+    "birds": "Birds",
+    "fish": "Fish / Reptiles",
+    "small-animals": "Small animals",
+    "none": "No other pets",
+    // Cat age
+    "kitten": "Kitten (under 1 year)",
+    "young-adult": "Young adult (1-3 years)",
+    "adult": "Adult (3-10 years)",
+    "senior": "Senior (10+ years)",
+    // Energy level
+    "high": "High energy",
+    "moderate": "Moderate",
+    "low": "Low energy",
+    // Coat length
+    "short": "Short hair",
+    "medium": "Medium hair",
+    "long": "Long hair",
+    "hairless": "Hairless",
+    // Shared
+    "no-preference": "No preference",
+    // Special needs
+    "fiv-positive": "FIV+ cats",
+    "blind": "Blind or visually impaired",
+    "deaf": "Deaf or hearing impaired",
+    "three-legged": "Three-legged / amputee",
+    "medical": "Ongoing medical needs",
+    "bonded-pair": "Bonded pairs",
+    // Experience
+    "first-time": "First-time cat owner",
+    "childhood": "Had cats growing up",
+    "previous": "Previously owned cats",
+    "current": "Currently have cats",
+    "professional": "Professional experience"
+  };
+
+  if (Array.isArray(value)) {
+    return value.map(v => valueLabels[v] || v).join(", ");
+  }
+
+  return valueLabels[value] || value;
+}
+
+/**
+ * Populate the step summary with current form data
+ */
+function populateStepSummary() {
+  if (!elements.summaryContent) return;
+
+  const sections = [
+    {
+      title: "About You",
+      step: 1,
+      fields: ["name", "email", "phone", "age"]
+    },
+    {
+      title: "Living Situation",
+      step: 2,
+      fields: ["housing", "ownership", "yard", "other-pets"]
+    },
+    {
+      title: "Cat Preferences",
+      step: 3,
+      fields: ["cat-age", "energy-level", "coat-length", "special-needs"]
+    }
+  ];
+
+  let html = "";
+
+  sections.forEach(section => {
+    html += `
+      <div class="summary-section">
+        <div class="summary-section-header">
+          <span class="summary-section-title">${section.title}</span>
+          <button type="button" class="summary-edit-link" data-goto-step="${section.step}" aria-label="Edit ${section.title}">Edit</button>
+        </div>
+    `;
+
+    section.fields.forEach(fieldName => {
+      const val = state.formData[fieldName];
+      html += `
+        <div class="summary-item">
+          <span class="summary-label">${getFieldLabel(fieldName)}</span>
+          <span class="summary-value">${formatFieldValue(fieldName, val)}</span>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+  });
+
+  elements.summaryContent.innerHTML = html;
+
+  // Edit link click handlers
+  elements.summaryContent.querySelectorAll("[data-goto-step]").forEach(link => {
+    link.addEventListener("click", () => {
+      const step = parseInt(link.dataset.gotoStep);
+      saveFormData();
+      goToStep(step);
+    });
+  });
 }
 
 // ----- Keyboard Navigation -----
