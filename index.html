@@ -44,6 +44,9 @@
 
     <main>
 
+      <!-- Screen reader announcements -->
+      <div class="sr-only" aria-live="polite" aria-atomic="true" id="step-announcer"></div>
+
       <h1 id="title">Cat Adoption Survey</h1>
       <p id="description">
         Thinking about adopting a feline friend? Tell us a bit about yourself and your preferences and we'll help you match with your purrfect companion!
@@ -80,6 +83,18 @@
 
       <form id="survey-form" novalidate>
 
+        <div class="form-header">
+          <button
+            type="button"
+            class="btn-reset"
+            id="reset-btn"
+            aria-label="Reset form"
+          >
+            <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+            <span>Reset</span>
+          </button>
+        </div>
+
         <fieldset class="form-step active" data-step="1">
 
           <legend class="sr-only">Step 1: About You</legend>
@@ -88,41 +103,44 @@
             <label for="name" id="name-label">
               Full Name<span class="required" aria-hidden="true">*</span>
             </label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               id="name"
               name="name"
               required
               autocomplete="name"
               aria-required="true"
+              aria-describedby="name-error"
             >
-            <span class="error-message" id="name-error" aria-live="polite"></span>
+            <span class="error-message" id="name-error"></span>
           </div>
 
           <div class="form-group">
             <label for="email" id="email-label">
               Email Address<span class="required" aria-hidden="true">*</span>
             </label>
-            <input 
-              type="email" 
+            <input
+              type="email"
               id="email"
               name="email"
               required
               autocomplete="email"
               aria-required="true"
+              aria-describedby="email-error"
             >
-            <span class="error-message" id="email-error" aria-live="polite"></span>
+            <span class="error-message" id="email-error"></span>
           </div>
 
           <div class="form-group">
             <label for="phone">Phone Number</label>
-            <input 
+            <input
               type="tel"
               id="phone"
               name="phone"
               autocomplete="tel"
+              aria-describedby="phone-error"
             >
-            <span class="error-message" id="phone-error" aria-live="polite"></span>
+            <span class="error-message" id="phone-error"></span>
           </div>
 
           <div class="form-group">
@@ -137,10 +155,10 @@
               max="122"
               required
               aria-required="true"
-              aria-describedby="age-hint"
+              aria-describedby="age-hint age-error"
             >
             <span class="hint" id="age-hint">Must be 18 or older to adopt</span>
-            <span class="error-message" id="age-error" aria-live="polite"></span>
+            <span class="error-message" id="age-error"></span>
           </div>
 
         </fieldset>
@@ -151,14 +169,14 @@
 
           <div class="form-group">
             <label for="dropdown">Housing Type</label>
-            <select name="housing" id="dropdown">
+            <select name="housing" id="dropdown" aria-describedby="housing-error">
               <option value="" disabled selected>Select your housing type</option>
               <option value="apartment">Apartment</option>
               <option value="townhouse">Townhouse</option>
               <option value="house">House</option>
               <option value="other">Other</option>
             </select>
-            <span class="error-message" id="housing-error" aria-live="polite"></span>
+            <span class="error-message" id="housing-error"></span>
           </div>
 
           <div class="form-group">
@@ -502,10 +520,10 @@
                 Deaf or hearing impaired
               </label>
               <label class="checkbox-label">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   name="special-needs"
-                  value="Three-legged / amputee"
+                  value="three-legged"
                 >
                 <span class="checkbox-custom"></span>
                 Three-legged / amputee
@@ -538,6 +556,15 @@
 
           <legend class="sr-only">Step 4: Final Details</legend>
 
+          <details class="step-summary" id="step-summary">
+            <summary>
+              <i data-lucide="clipboard-list" aria-hidden="true"></i>
+              <span>Review your answers</span>
+              <i data-lucide="chevron-down" class="summary-chevron" aria-hidden="true"></i>
+            </summary>
+            <div class="summary-content" id="summary-content"></div>
+          </details>
+
           <div class="form-group">
             <label for="experience">Previous cat experience?</label>
             <select name="experience" id="experience">
@@ -560,10 +587,11 @@
               rows="4"
               required
               aria-required="true"
+              aria-describedby="why-adopt-error"
               maxlength="1000"
             ></textarea>
             <div class="textarea-footer">
-              <span class="error-message" id="why-adopt-error" aria-live="polite"></span>
+              <span class="error-message" id="why-adopt-error"></span>
               <span class="char-count" id="why-adopt-count">0 / 1000</span>
             </div>
           </div>
@@ -595,17 +623,18 @@
 
           <div class="form-group checkbox-single">
             <label class="checkbox-label">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 name="terms"
                 value="accepted"
                 required
                 aria-required="true"
+                aria-describedby="terms-error"
               >
               <span class="checkbox-custom"></span>
               <p>I understand this is not a real form or survey.<span class="required" aria-hidden="true">*</span></p>
             </label>
-            <span class="error-message" id="terms-error" aria-live="polite"></span>
+            <span class="error-message" id="terms-error"></span>
           </div>
 
         </fieldset>
@@ -686,6 +715,26 @@
     </footer>
 
   </div>
+
+  <!-- Reset Confirmation Modal -->
+  <div class="modal-overlay" id="reset-modal" hidden>
+    <div class="modal" role="dialog" aria-labelledby="modal-title" aria-describedby="modal-description">
+      <div class="modal-icon">
+        <i data-lucide="alert-triangle" aria-hidden="true"></i>
+      </div>
+      <h2 id="modal-title">Reset Form?</h2>
+      <p id="modal-description">
+        This will clear all your answers and start over from the beginning. This action cannot be undone.
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="modal-cancel">Cancel</button>
+        <button type="button" class="btn btn-danger" id="modal-confirm">Reset Form</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+   <div class="toast-container" id="toast-container" aria-live="polite"></div>
 
   <!-- Scripts -->
   <script src="js/main.js"></script>
